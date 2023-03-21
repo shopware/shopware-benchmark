@@ -26,3 +26,18 @@ All tests are running with environment variables:
     - 60s object cache TTL
 See [Locust](https://github.com/shopware/platform/tree/trunk/src/Core/DevOps/Locust) on how to run the scenarios to your server.
 
+### Grafana
+
+If you are interested in the Results, you can open the [Grafana dashboard](https://grafana.sw-bench.de/d/rtrgXdxnk/locust-testruns?orgId=1).
+
+Of course, the numbers are not comparable to the real world, but it gives us a good overview of how the application performs almost no caching.
+
+### Relevant configs
+
+- [PHP ini](https://github.com/shopware/shopware-benchmark/blob/main/server/app/default.nix#L11-L28)
+- [PHP FPM](https://github.com/shopware/shopware-benchmark/blob/main/server/app/default.nix#L46-L55)
+- [Shopware Env](https://github.com/shopware/shopware-benchmark/blob/main/roles/app/templates/.env.local.php.j2)
+- [Shopware Application](https://github.com/shopware/shopware-benchmark/blob/main/roles/app/templates/shopware.yml)
+- [MySQL](https://github.com/shopware/shopware-benchmark/blob/main/server/mysql/default.nix#L15-L23)
+- [OpenSearch](https://github.com/shopware/shopware-benchmark/blob/main/server/elastic/default.nix#L6-L11)
+- [Redis](https://github.com/shopware/shopware-benchmark/blob/main/server/redis/default.nix#L8-L20)

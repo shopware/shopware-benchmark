@@ -12,6 +12,7 @@
     extraPackages = [
       pkgs.openssh
       pkgs.git
+      pkgs.psmisc
     ];
     extraEnvironment = {
       TMP = "/tmp";

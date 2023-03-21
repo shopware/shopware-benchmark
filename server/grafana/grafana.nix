@@ -45,16 +45,27 @@
         allow_org_create = false;
       };
 
+      auth = {
+        oauth_skip_org_role_update_sync = true;
+        disable_login_form = true;
+      };
+
       "auth.basic" = {
         enabled = false;
       };
 
       "auth.azuread" = {
         allowed_domains = "shopware.com";
-        auto_login = true;
         allow_assign_grafana_admin = true;
         skip_org_role_sync = true;
         enabled = true;
+      };
+
+      "auth.anonymous" = {
+        enabled = true;
+        org_name = "Shopware";
+        org_role = "Viewer";
+        hide_version = true;
       };
     };
   };

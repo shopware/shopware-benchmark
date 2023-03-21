@@ -66,4 +66,4 @@ jobs:
     
     - name: Stop SSH Agent
       if: always()
-      run: ssh-agent -k
+      run: killall ssh-agent
