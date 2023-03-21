@@ -14,7 +14,7 @@
       settings = {
         maxmemory = "7g";
         protected-mode = "no";
-        maxmemory-policy = "volatile-random";
+        maxmemory-policy = "volatile-lru";
         tcp-backlog = 65536;
         maxclients = 10000;
       };
