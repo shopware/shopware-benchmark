@@ -1,0 +1,42 @@
+name: benchmark
+domain: sw-bench.de
+location:
+  # - fsn1-dc14 # Falkenstein
+  # - nbg1-dc3 # Nürnberg
+  - hel1-dc2 # Helsinki
+image: 45557056 # debian-11
+servers:
+  app:
+    amount: 3
+    type: ccx32 # 8 cpu, 32GB memory
+    image: 103414836
+  mysql:
+    amount: 3
+    type: ccx32 # 8 cpu, 32GB memory
+    image: 103414836
+  elastic:
+    amount: 1
+    type: ccx32 # 8 cpu, 32GB memory
+    image: 103414836
+  redis:
+    amount: 1
+    type: ccx12 # 2 cpu, 8GB memory
+    image: 103414836
+  redissession:
+    amount: 1
+    type: ccx12  # 2 cpu, 8GB memory
+    image: 103414836
+  locust:
+    amount: 1
+    type: cpx51  # 16 vcpu, 32GB memory
+  grafana:
+    amount: 1
+    type: cx21  # 2 vcpu, 4GB memory
+    persistent: true
+    image: 103414836
+networks:
+  sw6-benchmark:
+keys:
+  Soner Sayakci:
+  Oliver Skroblin:
+  CI:

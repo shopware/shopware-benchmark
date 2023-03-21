@@ -1,0 +1,33 @@
+---
+- name: Update hosts file
+  blockinfile:
+    backup: yes
+    path: /etc/hosts
+    block: |
+      {% for host in groups['all'] %} 
+      {{ hostvars[host].private_server_ip }} {{ hostvars[host]['server_name'] }}
+      {% endfor %}
+
+- name: Update repository and Upgrade packages
+  apt:
+    upgrade: dist
+    update_cache: yes
+
+- name: Setup timezone to UTC
+  timezone:
+    name: UTC
+
+- name: Base Tools
+  apt:
+    name: [unzip, git]
+    state: latest
+
+- include_tasks: mc.yml
+- include_tasks: locust.yml
+- include_tasks: shopware.yml
+  args:
+    apply:
+      tags:
+        - fixture
+  tags:
+    - fixture

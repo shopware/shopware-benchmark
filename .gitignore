@@ -1,0 +1,9 @@
+/.envrc
+/.idea
+/inventory.yml
+/benchmark-setup
+/fixtures/*.json
+/.direnv
+/ci
+/result
+/roles/app/files/jwt

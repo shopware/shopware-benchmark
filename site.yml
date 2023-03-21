@@ -1,0 +1,14 @@
+---
+- hosts: app
+  remote_user: root
+
+  roles:
+    - app
+
+- hosts: locust
+  remote_user: root
+
+  tags:
+    - locust
+  roles:
+    - locust

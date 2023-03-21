@@ -1,0 +1,107 @@
+shopware:
+    cart:
+        redis_url: 'redis://{{ hostvars['redissession-1']['private_server_ip'] }}:6379/0?persistent=1'
+    admin_worker:
+        enable_admin_worker: false
+    mail:
+        update_mail_variables_on_send: false
+    increment:
+        user_activity:
+          type: 'array'
+        message_queue:
+          type: 'array'
+    filesystem:
+        theme:
+          type: amazon-s3
+          config:
+            options:
+              visibility: public
+            bucket: theme
+            region: "us-east-1"
+            use_path_style_endpoint: true
+            credentials:
+              key: "{{ lookup('env', 'MINIO_ACCESS_KEY_ID') }}"
+              secret: "{{ lookup('env', 'MINIO_ACCESS_KEY_SECRET') }}"
+            endpoint: 'https://assets.sw-bench.de'
+          url: 'https://assets.sw-bench.de/theme'
+        private:
+          config:
+            options:
+              visibility: private
+            bucket: private
+            region: "us-east-1"
+            use_path_style_endpoint: true
+            credentials:
+              key: "{{ lookup('env', 'MINIO_ACCESS_KEY_ID') }}"
+              secret: "{{ lookup('env', 'MINIO_ACCESS_KEY_SECRET') }}"
+            endpoint: 'https://assets.sw-bench.de'
+          type: amazon-s3
+        sitemap:
+          config:
+            credentials:
+              key: "{{ lookup('env', 'MINIO_ACCESS_KEY_ID') }}"
+              secret: "{{ lookup('env', 'MINIO_ACCESS_KEY_SECRET') }}"
+            options:
+              visibility: public
+            bucket: sitemap
+            region: "us-east-1"
+            use_path_style_endpoint: true
+            endpoint: 'https://assets.sw-bench.de'
+          type: amazon-s3
+          url: 'https://assets.sw-bench.de/asset'
+        public:
+          config:
+            credentials:
+              key: "{{ lookup('env', 'MINIO_ACCESS_KEY_ID') }}"
+              secret: "{{ lookup('env', 'MINIO_ACCESS_KEY_SECRET') }}"
+            options:
+              visibility: public
+            bucket: public
+            region: "us-east-1"
+            use_path_style_endpoint: true
+            endpoint: 'https://assets.sw-bench.de'
+          type: amazon-s3
+          url: 'https://assets.sw-bench.de/public'
+        asset:
+          config:
+            endpoint: 'https://assets.sw-bench.de'
+            bucket: asset
+            region: "us-east-1"
+            use_path_style_endpoint: true
+            credentials:
+              key: "{{ lookup('env', 'MINIO_ACCESS_KEY_ID') }}"
+              secret: "{{ lookup('env', 'MINIO_ACCESS_KEY_SECRET') }}"
+          type: amazon-s3
+          url: 'https://assets.sw-bench.de/asset'
+
+
+framework:
+    mailer:
+        message_bus: 'messenger.default_bus'
+    lock: 'in-memory'
+    cache:
+        app: cache.adapter.redis
+        default_redis_provider: 'redis://{{ hostvars['redis-1']['private_server_ip'] }}:6379/0?persistent=1'
+        pools:
+            cache.object:
+                default_lifetime: 120
+                adapter: cache.app
+                tags: cache.tags
+            cache.http:
+                default_lifetime: 120
+                adapter: cache.app
+                tags: cache.tags
+
+
+# Disable log_entry
+monolog:
+    handlers:
+        business_event_handler_buffer:
+            level: error
+
+elasticsearch:
+  product:
+    custom_fields_mapping:
+      aa_last_notification_sent_at: datetime
+      aa_deactivated_on_no_stock_at: datetime
+      aa_order_count_fake: switch

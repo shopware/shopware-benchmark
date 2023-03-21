@@ -1,0 +1,18 @@
+{
+    "yaml.schemas": {
+        "https://raw.githubusercontent.com/FriendsOfShopware/shopware-cli/main/shop/shopware-project-schema.json": "file:///Users/shyim/Code/benchmark-setup/.shopware-project.yaml",
+        "https://raw.githubusercontent.com/ansible/ansible-lint/main/src/ansiblelint/schemas/ansible.json": [
+            "file:///Users/shyim/Code/benchmark-setup/roles/app/tasks/shopware.yml",
+            "file:///Users/shyim/Code/benchmark-setup/roles/locust/tasks/shopware.yml"
+        ]
+    },
+    "files.exclude": {
+        "**/.git": true,
+        "**/.svn": true,
+        "**/.hg": true,
+        "**/CVS": true,
+        "**/.DS_Store": true,
+        "**/Thumbs.db": true,
+        ".direnv": true
+    }
+}

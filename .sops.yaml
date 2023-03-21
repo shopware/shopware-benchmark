@@ -1,0 +1,10 @@
+keys:
+  - &shyim age1wz75gdvjhkntzakrfyprs8svhakcka7jgzgd9zkw2u9uef9ve97qn9078q
+  - &grafana age17mn2rmzxum00ptd3adzumzu3qdkzmctwyvlaa24mu7phnwh2nafsnsngmq
+creation_rules:
+  - path_regex: server/grafana/secrets/blackfire.yaml
+    key_groups:
+    - pgp:
+      age:
+      - *shyim
+      - *grafana

@@ -1,0 +1,199 @@
+---
+- name: Setup known hosts
+  known_hosts:
+    name: "{{ hostvars[item].ansible_host }}"
+    key: "{{ lookup('pipe', 'ssh-keyscan {{ hostvars[item].ansible_host }}') }}"
+  when: "'app-1' in inventory_hostname"
+  loop: "{{ query('inventory_hostnames', 'app:!app-1') }}"
+
+- name: Create web dir
+  ansible.builtin.file:
+    path: /var/www/html
+    state: directory
+    mode: '0755'
+    owner: caddy
+    group: caddy
+
+- name: Stop Background Jobs
+  systemd:
+    name: "{{ item }}"
+    enabled: yes
+    state: stopped
+  loop: "{{ background_jobs }}"
+  tags:
+    - clearcache
+    - stop
+    - sync
+
+- name: Clone Shopware
+  command: git clone https://github.com/shopware/platform.git /var/www/html --depth=1
+  become: true
+  become_user: caddy
+  args:
+    creates: /var/www/html/.git
+
+- name: Set correct Git Ownership
+  command: git config --global --add safe.directory /var/www/html
+
+- name: Clone CustomRules
+  command: "git clone https://gitlab-ci-token:{{ lookup('env', 'CI_GITLAB_API_TOKEN') }}@gitlab.shopware.com/product/engineering/platform-group/core/CustomRules.git /var/www/html/custom/plugins/CustomRules --depth=1"
+  become: true
+  become_user: caddy
+  args:
+    creates: /var/www/html/custom/plugins/SwagCommercial
+
+- name: Clone Commercial
+  command: "git clone https://gitlab-ci-token:{{ lookup('env', 'CI_GITLAB_API_TOKEN') }}@gitlab.shopware.com/shopware/6/product/commercial.git /var/www/html/custom/plugins/SwagCommercial --depth=1"
+  become: true
+  become_user: caddy
+  args:
+    creates: /var/www/html/custom/plugins/SwagCommercial
+
+- name: Install Packages
+  command: composer require symfony/amqp-messenger shopware/commercial shopware/custom-rules -a
+  become: true
+  become_user: caddy
+  args:
+    chdir: /var/www/html
+
+- name: Sync files
+  command: "rsync --delete --exclude var/cache --exclude var/log --exclude node_modules -avze ssh /var/www/html/ root@{{ hostvars[item].ansible_host }}:/var/www/html/"
+  when: "'app-1' in inventory_hostname"
+  loop: "{{ query('inventory_hostnames', 'app:!app-1') }}"
+  tags:
+    - never
+    - sync
+
+- name: Touch install.lock
+  file:
+    path: /var/www/html/install.lock
+    state: touch
+  tags:
+    - sync
+
+- name: Setup Shopware Env
+  template:
+    src: .env.local.php.j2
+    dest: /var/www/html/.env.local.php
+    mode: '0644'
+    owner: caddy
+    group: caddy
+  tags:
+    - clearcache
+    - sync
+
+- name: Ensure config/packages exists
+  file:
+    path: /var/www/html/config/packages
+    state: directory
+    owner: caddy
+    group: caddy
+
+- name: Ensure config/jwt exists
+  file:
+    path: /var/www/html/config/jwt
+    state: directory
+    owner: caddy
+    group: caddy
+
+- name: Copy JWT private
+  copy:
+    src: jwt/private.pem
+    dest: /var/www/html/config/jwt/private.pem
+    mode: '0644'
+    owner: caddy
+    group: caddy
+
+- name: Copy JWT public
+  copy:
+    src: jwt/public.pem
+    dest: /var/www/html/config/jwt/public.pem
+    mode: '0644'
+    owner: caddy
+    group: caddy
+
+- name: Setup Shopware Config
+  template:
+    src: shopware.yml
+    dest: /var/www/html/config/packages/shopware.yaml
+    mode: '0644'
+    owner: caddy
+    group: caddy
+  tags:
+    - clearcache
+    - sync
+
+- name: Run Migrations
+  command: php /var/www/html/bin/console database:migrate --all
+  become: true
+  become_user: caddy
+  tags:
+    - clearcache
+    - sync
+  when: "'app-1' in inventory_hostname"
+
+- name: Refresh Plugins
+  command: php /var/www/html/bin/console plugin:refresh
+  become: true
+  become_user: caddy
+  when: "'app-1' in inventory_hostname"
+
+- name: Clear Cache
+  command: rm -rf /var/www/html/var/cache
+  become: true
+  become_user: caddy
+
+- name: Install CustomRules Plugin
+  command: php /var/www/html/bin/console plugin:install CustomRules --activate
+  become: true
+  become_user: caddy
+  when: "'app-1' in inventory_hostname"
+
+- name: Install SwagCommercial Plugin
+  command: php /var/www/html/bin/console plugin:install SwagCommercial --activate
+  become: true
+  become_user: caddy
+  when: "'app-1' in inventory_hostname"
+
+- name: Clear cache
+  command: rm -rf "/var/www/html/var/cache"
+  tags:
+    - clearcache
+    - sync
+  notify:
+    - restart php-fpm
+
+- name: Generate cache
+  command: php /var/www/html/bin/console
+  become: true
+  become_user: caddy
+  tags:
+    - clearcache
+    - sync
+
+- name: Start Workers
+  systemd:
+    name: "{{ item }}"
+    state: started
+  loop: "{{ background_jobs }}"
+  tags:
+    - clearcache
+    - sync
+
+- name: Reset Elasticsearch
+  ansible.builtin.command: php /var/www/html/bin/console es:reset -n
+  become: true
+  become_user: caddy
+  when: "'app-1' in inventory_hostname"
+  tags:
+    - never
+    - init
+
+- name: Trigger Elasticsearch Indexing
+  ansible.builtin.command: php /var/www/html/bin/console es:index
+  become: true
+  become_user: caddy
+  when: "'app-1' in inventory_hostname"
+  tags:
+    - never
+    - init

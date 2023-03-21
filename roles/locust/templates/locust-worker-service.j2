@@ -1,0 +1,12 @@
+[Unit]
+Description=Locust Worker
+
+[Service]
+Type=simple
+User=root
+LimitNOFILE=500000
+LimitNPROC=500000
+Restart=always
+ExecStart=/usr/bin/python3 /usr/local/bin/locust -f /root/platform/src/Core/DevOps/Locust/scenarios/integration-benchmark.py --worker
+TimeoutStopFailureMode=kill
+TimeoutStopSec=1s

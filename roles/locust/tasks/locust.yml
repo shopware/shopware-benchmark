@@ -1,0 +1,21 @@
+---
+- name: Write systemd service
+  ansible.builtin.template:
+    src: locust-worker-service.j2
+    dest: /etc/systemd/system/locust-worker@.service
+    mode: '0644'
+  register: locust
+
+- name: Reload Daemon
+  systemd:
+    daemon_reload: yes
+  when: locust.changed == true
+
+- name: Install Python
+  apt:
+    name: [python3-pip, psmisc]
+    state: latest
+
+- name: Install locust-plugins
+  pip:
+    name: [locust-plugins, beautifulsoup4, faker, pyzmq==22.3.0]

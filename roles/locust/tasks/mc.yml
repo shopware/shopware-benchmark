@@ -1,0 +1,37 @@
+---
+- name: get current minio version
+  ansible.builtin.command: mc -v
+  register: mc_version
+  ignore_errors: true
+
+- name: check latest mc
+  uri:
+    url: https://api.github.com/repos/minio/mc/releases/latest
+    return_content: true
+  register: mc_latest
+
+- name: Remove old mc
+  ansible.builtin.command: rm -rf /usr/local/bin/mc
+  ignore_errors: true
+  when: mc_latest.json.tag_name not in mc_version.stdout
+
+- name: Is minio there
+  stat:
+    path: /usr/local/bin/minio
+  register: mc_file
+
+- name: Download the Minio client
+  get_url:
+    url: "https://dl.min.io/client/mc/release/linux-amd64/mc"
+    dest: "/usr/local/bin/mc"
+    owner: "root"
+    group: "root"
+    mode: 0755
+  register: _download_server
+  when: mc_file.stat.exists == false
+  until: _download_server is succeeded
+  retries: 5
+  delay: 2
+
+- name: Setup Minio Client Remote
+  command: "mc alias set storage/ https://assets.sw-bench.de {{ lookup('env', 'MINIO_ACCESS_KEY_ID') }} {{ lookup('env', 'MINIO_ACCESS_KEY_SECRET') }}"

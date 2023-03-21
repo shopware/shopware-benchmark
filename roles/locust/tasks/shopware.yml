@@ -1,0 +1,42 @@
+---
+- name: Clone Shopware
+  ansible.builtin.command: git clone https://github.com/shopware/platform.git /root/platform --depth=1
+  args:
+    creates: /root/platform/.git
+
+- name: Write env.json
+  delegate_to: app-1.sw-bench.de
+  ansible.builtin.template:
+    src: env.json.j2
+    dest: /var/www/html/src/Core/DevOps/Locust/env.json
+
+- name: Generate URLs
+  delegate_to: app-1.sw-bench.de
+  ansible.builtin.command: sudo -u caddy php -dmemory_limit=-1 /var/www/html/src/Core/DevOps/Locust/setup.php
+
+- name: Download files
+  delegate_to: localhost
+  ansible.builtin.command: scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null root@{{ hostvars['app-1']['ansible_host'] }}:/var/www/html/src/Core/DevOps/Locust/fixtures/* ./fixtures/
+
+- name: Upload files
+  delegate_to: localhost
+  ansible.builtin.shell: scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ./fixtures/*.json root@{{ ansible_host }}:/root/platform/src/Core/DevOps/Locust/fixtures/
+
+- name: Write env.json
+  ansible.builtin.template:
+    src: env.json.j2
+    dest: /root/platform/src/Core/DevOps/Locust/env.json
+
+- name: Restart all workers
+  systemd:
+    name: "{{ item }}"
+    state: restarted
+  loop:
+    - 'locust-worker@0.service'
+    - 'locust-worker@1.service'
+    - 'locust-worker@2.service'
+    - 'locust-worker@3.service'
+    - 'locust-worker@4.service'
+    - 'locust-worker@5.service'
+    - 'locust-worker@6.service'
+    - 'locust-worker@7.service'

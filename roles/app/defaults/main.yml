@@ -1,0 +1,8 @@
+---
+# defaults file for app
+background_jobs:
+  - "shopware_scheduled_task"
+  - "shopware-worker@1"
+  - "shopware-worker@2"
+  - "shopware-worker@3"
+  - "shopware-worker@4"
