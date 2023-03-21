@@ -6,7 +6,7 @@ Shopware benchmark system. This system does nightly benchmarks with the current 
 
 Most servers are provisioned with NixOS which you can find in the `server` folder. 
 The Ansible playbook is used to run some commands in parallel on multiple servers.
-The servers consist of multiple servers:
+The setup consist of multiple servers:
 
 | Name          | Type                     | Software                                          |
 |---------------|--------------------------|---------------------------------------------------|
