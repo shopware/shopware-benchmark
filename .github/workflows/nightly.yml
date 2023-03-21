@@ -1,0 +1,69 @@
+name: Benchmark Run
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 4,10 * * *'
+
+jobs:
+  build:
+    runs-on: self-hosted
+    env:
+      CI_GITLAB_API_TOKEN: ${{ secrets.CI_GITLAB_API_TOKEN }}
+      HETZNER_CLOUD_TOKEN: ${{ secrets.HETZNER_CLOUD_TOKEN }}
+      HETZNER_DNS_TOKEN: ${{ secrets.HETZNER_DNS_TOKEN }}
+      MINIO_ACCESS_KEY_ID: ${{ secrets.MINIO_ACCESS_KEY_ID }}
+      MINIO_ACCESS_KEY_SECRET: ${{ secrets.MINIO_ACCESS_KEY_SECRET }}
+      SHOPWARE_PASSWORD: ${{ secrets.SHOPWARE_PASSWORD }}
+      SHOPWARE_USERNAME: ${{ secrets.SHOPWARE_USERNAME }}
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+      SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+  
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup SSH Agent
+      run: |
+        ssh-agent -a $SSH_AUTH_SOCK > /dev/null
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" | tr -d '\r' | ssh-add -
+
+    - name: Start Infrastructure
+      run: nix develop -c benchmark-setup infra up
+    
+    - name: Trigger Indexing
+      run: nix develop -c benchmark-setup shopware prepare
+      
+    - name: Wait for Indexing
+      run: nix develop -c benchmark-setup shopware wait
+      
+    - name: Run Integration Benchmark
+      run: nix develop -c benchmark-setup locust --run-time 10m --time-scale=1 --headless
+
+    - name: Clear Caches
+      run: nix develop -c benchmark-setup infra clear
+      
+    - name: Run API Benchmark
+      run: nix develop -c benchmark-setup locust --run-time 10m --time-scale=1 --headless --file api-benchmark
+
+    - name: Clear Caches
+      run: nix develop -c benchmark-setup infra clear
+      
+    - name: Run Storefront Benchmark
+      run: nix develop -c benchmark-setup locust --run-time 10m --time-scale=1 --headless --file storefront-benchmark
+
+    - name: Clear Caches
+      run: nix develop -c benchmark-setup infra clear
+      
+    - name: Run Store-API Benchmark
+      run: nix develop -c benchmark-setup locust --run-time 10m --time-scale=1 --headless --file store-api-benchmark
+
+    - name: Clear Caches
+      run: nix develop -c benchmark-setup infra clear
+      
+    - name: Stop Infrastructure
+      if: always()
+      run: nix develop -c benchmark-setup infra down
+    
+    - name: Stop SSH Agent
+      if: always()
+      run: ssh-agent -k
