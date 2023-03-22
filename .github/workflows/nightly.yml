@@ -5,6 +5,8 @@ on:
   schedule:
     - cron: '0 4,10 * * *'
 
+concurrency: benchmark
+
 jobs:
   build:
     runs-on: self-hosted
