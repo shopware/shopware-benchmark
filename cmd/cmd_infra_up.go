@@ -63,7 +63,7 @@ var infraUpCmd = &cobra.Command{
 			return err
 		}
 
-		mysqlSnapshot, _ := cmd.PersistentFlags().GetString("mysql-snapshot")
+		mysqlSnapshot, _ := cmd.PersistentFlags().GetString("run-env")
 		mysqlSnapshotId := -1
 
 		for _, image := range images {
@@ -457,6 +457,6 @@ func generatePublicKey(key *rsa.PrivateKey) (string, error) {
 }
 
 func init() {
-	infraUpCmd.PersistentFlags().String("mysql-snapshot", "demo-data", "Hetzner Cloud Snapshot Name")
+	infraUpCmd.PersistentFlags().String("run-env", "demo-data", "Hetzner Cloud Snapshot Name")
 	infraCmd.AddCommand(infraUpCmd)
 }

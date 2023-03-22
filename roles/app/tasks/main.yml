@@ -155,6 +155,18 @@
   become_user: caddy
   when: "'app-1' in inventory_hostname"
 
+- name: Update SwagCommercial Plugin
+  command: php /var/www/html/bin/console plugin:update SwagCommercial
+  become: true
+  become_user: caddy
+  when: "'app-1' in inventory_hostname"
+
+- name: Refresh License Key
+  command: php /var/www/html/bin/console commercial:license:update
+  become: true
+  become_user: caddy
+  when: "'app-1' in inventory_hostname"
+
 - name: Clear cache
   command: rm -rf "/var/www/html/var/cache"
   tags:

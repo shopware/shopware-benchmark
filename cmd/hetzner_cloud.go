@@ -23,10 +23,6 @@ func getServers(client *hcloud.Client, ctx context.Context) (map[string][]*hclou
 			continue
 		}
 
-		if len(server.PrivateNet) == 0 {
-			log.Warningf("Server %s (id: %d) as it is not in a private network", server.Name, server.ID)
-		}
-
 		group, ok := server.Labels["group"]
 		if !ok {
 			log.Warningf("Skipping server %s (id: %d) as it has no group label", server.Name, server.ID)

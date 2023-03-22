@@ -21,6 +21,13 @@ jobs:
       SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
       SSH_AUTH_SOCK: /tmp/ssh_agent.sock
   
+    strategy:
+      fail-fast: false
+      matrix:
+        env:
+          - demo-data
+          - customer-1
+  
     steps:
     - uses: actions/checkout@v3
     
@@ -31,7 +38,7 @@ jobs:
         echo "SSH_AGENT_PID=$SSH_AGENT_PID" >> $GITHUB_ENV
 
     - name: Start Infrastructure
-      run: nix develop -c benchmark-setup infra up
+      run: nix develop -c benchmark-setup infra up --run-env ${{ matrix.env }}
     
     - name: Trigger Indexing
       run: nix develop -c benchmark-setup shopware prepare
@@ -40,25 +47,25 @@ jobs:
       run: nix develop -c benchmark-setup shopware wait
       
     - name: Run Integration Benchmark
-      run: nix develop -c benchmark-setup locust --run-time 10m --time-scale=1 --headless
+      run: nix develop -c benchmark-setup locust --run-time 10m --time-scale=1 --headless --run-env ${{ matrix.env }}
 
     - name: Clear Caches
       run: nix develop -c benchmark-setup infra clear
       
     - name: Run API Benchmark
-      run: nix develop -c benchmark-setup locust --run-time 10m --time-scale=1 --headless --file api-benchmark
+      run: nix develop -c benchmark-setup locust --run-time 10m --time-scale=1 --headless --file api-benchmark --run-env ${{ matrix.env }}
 
     - name: Clear Caches
       run: nix develop -c benchmark-setup infra clear
       
     - name: Run Storefront Benchmark
-      run: nix develop -c benchmark-setup locust --run-time 10m --time-scale=1 --headless --file storefront-benchmark
+      run: nix develop -c benchmark-setup locust --run-time 10m --time-scale=1 --headless --file storefront-benchmark --run-env ${{ matrix.env }}
 
     - name: Clear Caches
       run: nix develop -c benchmark-setup infra clear
       
     - name: Run Store-API Benchmark
-      run: nix develop -c benchmark-setup locust --run-time 10m --time-scale=1 --headless --file store-api-benchmark
+      run: nix develop -c benchmark-setup locust --run-time 10m --time-scale=1 --headless --file store-api-benchmark --run-env ${{ matrix.env }}
 
     - name: Clear Caches
       run: nix develop -c benchmark-setup infra clear

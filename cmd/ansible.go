@@ -73,6 +73,22 @@ func generateAnsibleInventory(infraCfg *InfraConfig, client *hcloud.Client, ctx 
 		}
 	}
 
+	loadBalancer, err := client.LoadBalancer.All(ctx)
+
+	if err != nil {
+		return err
+	}
+
+	lbGroup := &InventoryGroup{Hosts: map[string]interface{}{}}
+	inventoryFile["loadbalancer"] = lbGroup
+
+	for _, lb := range loadBalancer {
+		lbGroup.Hosts[lb.Name] = map[string]string{
+			"private_server_ip": lb.PrivateNet[0].IP.String(),
+			"server_name":       infraCfg.Domain,
+		}
+	}
+
 	inventortContent, err := yaml.Marshal(inventoryFile)
 
 	if err != nil {
