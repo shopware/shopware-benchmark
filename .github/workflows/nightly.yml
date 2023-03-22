@@ -24,8 +24,9 @@ jobs:
     
     - name: Setup SSH Agent
       run: |
-        ssh-agent -a $SSH_AUTH_SOCK > /dev/null
+        eval $(ssh-agent -a $SSH_AUTH_SOCK)
         echo "${{ secrets.SSH_PRIVATE_KEY }}" | tr -d '\r' | ssh-add -
+        echo "SSH_AGENT_PID=$SSH_AGENT_PID" >> $GITHUB_ENV
 
     - name: Start Infrastructure
       run: nix develop -c benchmark-setup infra up
@@ -66,4 +67,4 @@ jobs:
     
     - name: Stop SSH Agent
       if: always()
-      run: killall ssh-agent || true
+      run: ssh-agent -k
