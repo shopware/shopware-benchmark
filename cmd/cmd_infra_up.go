@@ -13,7 +13,6 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
-	"sync"
 	"time"
 
 	"github.com/hetznercloud/hcloud-go/hcloud"
@@ -26,7 +25,7 @@ var infraUpCmd = &cobra.Command{
 	Short: "Starts our infrastructure at Hetzner Cloud",
 	Long:  `Provisions VMs`,
 	RunE: func(cmd *cobra.Command, _ []string) error {
-		if err := prepareProject(cmd.Context()); err != nil {
+		if err := prepareProject(); err != nil {
 			return err
 		}
 
@@ -157,22 +156,12 @@ var infraUpCmd = &cobra.Command{
 				}
 			}
 
-			if allServersOnline == true {
+			if allServersOnline {
 				break
 			}
 
 			log.Infof("Checking again in 20 seconds")
 			time.Sleep(20 * time.Second)
-		}
-
-		dnsClient, err := getHetznerDnsClient()
-
-		if err != nil {
-			return err
-		}
-
-		if err := updateDns(client, dnsClient, infraCfg, cmd.Context()); err != nil {
-			log.Infof("DNS Update failed: %v", err.Error())
 		}
 
 		if err := generateAnsibleInventory(infraCfg, client, cmd.Context()); err != nil {
@@ -245,24 +234,6 @@ func runColmena(ctx context.Context) error {
 	}
 
 	return nil
-}
-
-func runAnsiblePlaybook(wg *sync.WaitGroup, ctx context.Context, name string, cancel context.CancelFunc) {
-	defer wg.Done()
-
-	cmd := exec.CommandContext(ctx, "ansible-playbook", "-i", "inventory.yml", "site.yml", "-l", name)
-	cmd.Stderr = os.Stderr
-	cmd.Stdout = os.Stdout
-	cmd.Stdin = os.Stdin
-	if err := cmd.Run(); err != nil {
-		log.Errorf("Cannot run ansible command for %s, error: %v", name, err)
-		cancel()
-	}
-
-	if cmd.ProcessState.ExitCode() != 0 {
-		log.Errorf("Ansible failed for %s exited with %d", name, cmd.ProcessState.ExitCode())
-		cancel()
-	}
 }
 
 func getSSHKeys(client *hcloud.Client, ctx context.Context, cfg *InfraConfig) ([]*hcloud.SSHKey, error) {
@@ -367,7 +338,7 @@ func createServer(client *hcloud.Client, ctx context.Context, opts CreateServerO
 	return nil
 }
 
-func prepareProject(ctx context.Context) error {
+func prepareProject() error {
 	curDir, _ := os.Getwd()
 	jwtFolder := filepath.Join(curDir, "roles", "app", "files", "jwt")
 

@@ -47,13 +47,7 @@ var infraDownCmd = &cobra.Command{
 			}
 		}
 
-		dnsClient, err := getHetznerDnsClient()
-
-		if err != nil {
-			return err
-		}
-
-		return updateDns(client, dnsClient, infraCfg, cmd.Context())
+		return nil
 	},
 }
 

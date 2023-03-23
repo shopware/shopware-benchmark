@@ -3,9 +3,9 @@ package cmd
 import (
 	"context"
 	"fmt"
-	hetzner_dns "github.com/panta/go-hetzner-dns"
-	"github.com/spf13/cobra"
 	"os"
+
+	"github.com/spf13/cobra"
 
 	"github.com/hashicorp/go-retryablehttp"
 	"github.com/hetznercloud/hcloud-go/hcloud"
@@ -45,14 +45,4 @@ func getHetznerCloudClient() (*hcloud.Client, error) {
 	}
 
 	return hcloud.NewClient(hcloud.WithToken(os.Getenv("HETZNER_CLOUD_TOKEN")), hcloud.WithHTTPClient(retryablehttp.NewClient().StandardClient())), nil
-}
-
-func getHetznerDnsClient() (*hetzner_dns.Client, error) {
-	if os.Getenv("HETZNER_DNS_TOKEN") == "" {
-		return nil, fmt.Errorf("environment variable HETZNER_DNS_TOKEN is not filled")
-	}
-
-	client := hetzner_dns.Client{ApiKey: os.Getenv("HETZNER_DNS_TOKEN"), HttpClient: retryablehttp.NewClient().StandardClient()}
-
-	return &client, nil
 }
