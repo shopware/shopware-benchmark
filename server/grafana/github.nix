@@ -5,6 +5,9 @@
     };
   };
 
+  nixpkgs.config.permittedInsecurePackages = [
+	"nodejs-16.20.0"
+  ];
   services.github-runners.default = {
     enable = true;
     url = "https://github.com/shopware/shopware-benchmark";

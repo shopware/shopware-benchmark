@@ -127,7 +127,7 @@
           benchmark-setup = pkgs.buildGoModule {
             name = "benchmark-setup";
             src = ./.;
-            vendorSha256 = "sha256-5QJgW+ktYflCCPOSTie3VidjJumc8w4NSp++1sF6dHs=";
+            vendorSha256 = "sha256-5QJgW+ktYflCCPOSTie3VidjJumc8w4NSp++1sF6dHs";
           };
           ansible = pkgs.ansible_2_13.overrideAttrs (old: rec {
             propagatedBuildInputs = old.propagatedBuildInputs ++ [
