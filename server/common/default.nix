@@ -3,7 +3,7 @@
     ./hardware.nix
   ];
 
-  boot.cleanTmpDir = true;
+  boot.tmp.cleanOnBoot = true;
   zramSwap.enable = true;
   networking.hostName = vars.server_name;
   networking.domain = "sw-bench.de";

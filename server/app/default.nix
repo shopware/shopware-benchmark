@@ -36,7 +36,7 @@ in
     pkgs.nodejs-18_x
     pkgs.rsync
     pkgs.git
-    pkgs.python39
+    pkgs.python311
   ];
 
   services.phpfpm.pools.web = {
